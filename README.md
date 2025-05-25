@@ -1,6 +1,8 @@
 # DesafioKodland
 Desafio para vaga de tutor python
 ## Jump Alien
+![JumpAlien](https://github.com/user-attachments/assets/d59d1073-ad1b-4c30-a6d2-925466e7b772)
+
 ### objetivo
 coletar todas as moedas e derotar todos os inimigos (exceto o de espinhos nas costas)
 ### controles
