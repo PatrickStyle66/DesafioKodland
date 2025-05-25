@@ -30,4 +30,4 @@ pule em cima para matar!
 ![idlesaw0](https://github.com/user-attachments/assets/e3795a9a-bcc6-4aa6-a567-f48fb92dd43c)
 Anda de um lado para o outro
 
-Não pule em cima ele tem espinhos!
+Não pule em cima, ele tem espinhos!
