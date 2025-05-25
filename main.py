@@ -4,8 +4,9 @@ import sys
 class Player:
     def __init__(self, x, y):
         self.vel = 4
-        self.jump_constant = 8
-        self.jump_count = self.jump_constant
+        self.y_vel = 0
+        self.jump_count = 1
+        self.jumping = False
         self.is_jump = False
         self.sprite = Actor('idle1', midbottom = (x,y))
         self.idle_tiles = [f'idle{i}' for i in range(2)]
@@ -58,33 +59,34 @@ class Player:
 
     def move(self):
         self.idle()
+        if self.check_colision():
+            self.jump_count = 1
+            self.sprite.y -= 1
+            self.is_jump = False
+        if not self.check_colision():
+            self.sprite.y += self.jump_count
+            if self.jump_count <= 20:
+                self.jump_count +=0.5
         if keyboard.left and self.sprite.x > self.vel:
             self.sprite.x -= self.vel
             self.left()
         if keyboard.right and self.sprite.x < 600:
             self.sprite.x += self.vel
             self.right()
-        if not (self.is_jump):
 
-            if keyboard.up:
-                self.is_jump = True
-                sounds.jump.play()
+
+        if keyboard.up and self.check_colision() and not self.is_jump:
+            self.is_jump = True
+            self.jumping = True
+            self.y_vel = 95
+            sounds.jump.play()
+        if self.jumping and self.y_vel > 25:
+            self.y_vel = self.y_vel - ((100 - self.y_vel)/ 2)
+            self.sprite.y -= self.y_vel/6
         else:
-            flag = True
-            if self.jump_count >= -self.jump_constant:
-                neg = 1
-                if self.jump_count < 0:
-                    neg = -1
-                    if self.check_colision():
-                        flag = False
-                if flag:
-                    self.sprite.y -= (self.jump_count ** 2) * 0.5 * neg
-                self.jump_count -= 1
-            else:
-                self.is_jump = False
-                self.jump_count = self.jump_constant
-        if not self.check_colision():
-            self.sprite.y += self.jump_constant
+            self.y_vel = 0
+            self.jumping = False
+
 
 class BlueEnemy:
     def __init__(self, x, y):
@@ -248,12 +250,12 @@ WIDTH = 600
 HEIGHT = 500
 alien = Player(10, 478)
 floor = Actor('floor',bottomleft = (0,500))
-entities = [BlueEnemy(0, 400), BatEnemy(240, 280), SawEnemy(580, 330), BeigeEnemy(20, 271)]
-platforms = [floor,Rect((0,400),(200,18)),Rect((320,360),(100,18)),Rect((250,380),(15,7)),Rect((451,330),(150,18)),
-             Rect((296,280),(100,18)),Rect((0,271),(180,18)),Rect((0,187),(100,18)),Rect((150,127),(100,18)),
+entities = [BlueEnemy(0, 400), BatEnemy(240, 280), SawEnemy(580, 310), BeigeEnemy(20, 271)]
+platforms = [floor,Rect((0,400),(200,18)),Rect((320,360),(100,18)),Rect((250,380),(15,7)),Rect((451,310),(150,18)),
+             Rect((320,250),(100,18)),Rect((0,271),(180,18)),Rect((0,187),(100,18)),Rect((150,127),(100,18)),
              Rect((297,90),(100,18)),Rect((432,60),(170,18)),Rect((235,288),(15,7))]
 
-coins = [Coin(480,450),Coin(510,450),Coin(540,450),Coin(570,450),Coin(20,360),Coin(525,300),Coin(20,230),Coin(20,160)
+coins = [Coin(480,450),Coin(510,450),Coin(540,450),Coin(570,450),Coin(20,360),Coin(525,280),Coin(20,230),Coin(20,160)
     ,Coin(220,100),Coin(350,60), Coin(460,30),Coin(490,30),Coin(520,30)]
 
 play = Rect((220,150),(150,50))
@@ -263,8 +265,8 @@ toggle_music = True
 def starting_pos():
     global alien, entities, coins
     alien = Player(10, 478)
-    entities = [BlueEnemy(0, 400), BatEnemy(240, 280), SawEnemy(580, 330), BeigeEnemy(20, 271)]
-    coins = [Coin(480, 450), Coin(510, 450), Coin(540, 450), Coin(570, 450), Coin(20, 360), Coin(525, 300),
+    entities = [BlueEnemy(0, 400), BatEnemy(240, 280), SawEnemy(580, 310), BeigeEnemy(20, 271)]
+    coins = [Coin(480, 450), Coin(510, 450), Coin(540, 450), Coin(570, 450), Coin(20, 360), Coin(525, 280),
              Coin(20, 230), Coin(20, 160), Coin(220, 100), Coin(350, 60), Coin(460, 30), Coin(490, 30), Coin(520, 30)]
 music.play('background')
 state = 'menu'
@@ -306,7 +308,7 @@ def draw_menu():
 def draw_game():
     floor.draw()
     i = 0
-    screen.draw.text(f"Moedas Restantes: {len(coins)}\nInimigos Restantes: {len(entities) - 1}", topleft=(0, 0),
+    screen.draw.text(f"Moedas Restantes: {len(coins)}\nInimigos Restantes: {len(entities) - 1}\nControles: setas do teclado", topleft=(0, 0),
                      fontsize=12, color="white",fontname="gomarice_soft_atama.ttf", owidth=1, ocolor="black")
     for platform in platforms:
         if (i == 0):
@@ -352,8 +354,8 @@ def update():
         alien.check_coin_collision()
         collide, enemy = alien.check_enemy_colision()
         if collide:
-            if alien.is_jump:
-                if isinstance(enemy, SawEnemy) or enemy.sprite.y < alien.sprite.y:
+            if enemy.sprite.y > alien.sprite.y:
+                if isinstance(enemy, SawEnemy):
                     sounds.eep.play()
                     state = 'gameover'
                 else:
